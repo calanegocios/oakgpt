@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>OakGPT</title>
+<meta name="theme-color" content="#4a1a5c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OakGPT">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, Roboto, Arial, sans-serif; background: #f5f3f0; color: #222; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 40px; }
+  h1 { font-size: 26px; margin: 4px 0 2px; color: #4a1a5c; }
+  .sub { color: #777; font-size: 14px; margin-bottom: 18px; }
+  .btn { display: block; width: 100%; border: 0; border-radius: 14px; padding: 18px; font-size: 19px; font-weight: 600; cursor: pointer; }
+  .primario { background: #4a1a5c; color: #fff; }
+  .enviar { background: #2e7d4f; color: #fff; margin-top: 14px; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .camara { font-size: 22px; padding: 26px; }
+  .secundario { background: #fff; color: #4a1a5c; border: 2px solid #4a1a5c; margin-top: 12px; padding: 14px; font-size: 17px; }
+  .nota { font-size: 14px; color: #666; margin: 10px 2px 0; line-height: 1.45; }
+  .nota b { color: #222; }
+  input[type=password] { width: 100%; padding: 14px; font-size: 18px; border: 1px solid #ccc; border-radius: 12px; margin: 8px 0 14px; }
+  label { font-size: 14px; color: #555; }
+  .caja { background: #fff; border-radius: 16px; padding: 16px; border: 2px solid #4a1a5c; }
+  .caja .ayuda { font-size: 15px; color: #555; margin: 0 0 14px; line-height: 1.45; }
+  .caja .ayuda b { color: #222; }
+  .bandeja { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .mini { position: relative; width: 74px; height: 74px; border-radius: 10px; overflow: hidden; background: #eee; }
+  .mini img { width: 100%; height: 100%; object-fit: cover; }
+  .mini .n { position: absolute; left: 4px; bottom: 4px; background: rgba(0,0,0,.65); color: #fff; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 1px 6px; }
+  .mini button { position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; font-size: 14px; line-height: 24px; padding: 0; cursor: pointer; }
+  .vacia { font-size: 14px; color: #999; margin-top: 10px; }
+  .oculto { display: none !important; }
+  .rush { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; cursor: pointer; border: 2px solid #e4dae8; }
+  .rush.on { border-color: #e8a33d; background: #fff8ea; }
+  .rush input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .rush .riel { flex: none; position: relative; width: 52px; height: 30px; border-radius: 15px; background: #c9bfcf; transition: background .2s; }
+  .rush.on .riel { background: #e8a33d; }
+  .rush .bola { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .rush.on .bola { transform: translateX(22px); }
+  .rush b { display: block; font-size: 16px; }
+  .rush small { display: block; font-size: 13px; color: #666; margin-top: 2px; }
+  .rush input:focus-visible + .riel { outline: 3px solid #4a1a5c; outline-offset: 2px; }
+  .error { color: #b00020; font-size: 14px; margin-top: 8px; }
+  .link { display: block; width: 100%; background: none; border: 0; color: #4a1a5c; font-size: 15px; text-decoration: underline; padding: 12px 10px 2px; cursor: pointer; }
+  .link:disabled { opacity: .4; cursor: default; }
+  .alerta { position: sticky; top: 0; z-index: 5; background: #b3261e; color: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; font-size: 17px; font-weight: 600; cursor: pointer; }
+  .alerta small { display: block; font-weight: 400; font-size: 14px; opacity: .9; margin-top: 2px; }
+  .cola-titulo { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #777; margin: 26px 0 10px; display: flex; justify-content: space-between; }
+  .item { background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; border: 2px solid transparent; }
+  .item.rojo { border-color: #b3261e; background: #fde0e0; }
+  .item.ambar { border-color: #e8a33d; background: #fff4d6; }
+  .item.verde { background: #eef7f1; }
+  .fila { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 15px; }
+  .estado { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .item ul { margin: 8px 0 0; padding-left: 20px; font-size: 15px; }
+  .item .acciones { display: flex; gap: 8px; margin-top: 10px; }
+  .item .acciones button { flex: 1; border: 0; border-radius: 10px; padding: 12px 8px; font-size: 15px; font-weight: 600; cursor: pointer; background: #4a1a5c; color: #fff; }
+  .item .acciones button.suave { background: #fff; color: #4a1a5c; border: 2px solid #4a1a5c; }
+  /* Cámara dentro de la app: varias fotos seguidas, como WhatsApp */
+  #visor { position: fixed; inset: 0; z-index: 50; background: #000; display: flex; flex-direction: column; }
+  #visor video { flex: 1; width: 100%; min-height: 0; object-fit: cover; background: #000; }
+  #visor .arriba { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; color: #fff; font-size: 16px; font-weight: 600; background: linear-gradient(rgba(0,0,0,.55), transparent); }
+  #visor .arriba button { background: rgba(0,0,0,.45); color: #fff; border: 0; border-radius: 50%; width: 44px; height: 44px; font-size: 22px; cursor: pointer; }
+  #visor .abajo { background: #000; padding: 10px 16px 22px; }
+  #visor .tira { display: flex; gap: 6px; overflow-x: auto; min-height: 58px; margin-bottom: 12px; }
+  #visor .tira img { flex: none; width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 2px solid #fff; }
+  #visor .controles { display: flex; align-items: center; justify-content: space-between; }
+  #visor .controles .lado { width: 76px; }
+  #disparo { width: 78px; height: 78px; border-radius: 50%; border: 5px solid #fff; background: rgba(255,255,255,.25); cursor: pointer; padding: 0; }
+  #disparo:active { background: #fff; }
+  #listo { width: 76px; height: 76px; border-radius: 50%; border: 0; background: #2e7d4f; color: #fff; font-size: 30px; font-weight: 700; cursor: pointer; position: relative; }
+  #listo:disabled { opacity: .35; }
+  #listo span { position: absolute; top: -4px; right: -4px; background: #fff; color: #2e7d4f; border-radius: 12px; font-size: 14px; padding: 2px 8px; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .15s; }
+  #flash.on { opacity: .7; transition: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📸 OakGPT</h1>
+  <div class="sub">Oakberry Chacarilla · Delivery</div>
+  <div id="alerta" class="alerta oculto" onclick="irAlProblema()"></div>
+
+  <!-- PIN -->
+  <div id="pantallaPin" class="oculto">
+    <label>PIN de la estación</label>
+    <input type="password" id="pin" inputmode="numeric" maxlength="6" placeholder="••••">
+    <div id="errorPin" class="error"></div>
+    <button class="btn primario" onclick="guardarPin()">Entrar</button>
+  </div>
+
+  <!-- FOTOS -->
+  <div id="pantallaFoto" class="oculto">
+    <label class="rush" id="rushBox">
+      <input type="checkbox" id="rush" onchange="cambiarModo(this.checked)">
+      <span class="riel"><span class="bola"></span></span>
+      <span><b id="rushTitulo">⚡ Modo rush</b><small id="rushTexto">Envías y pasas al siguiente pedido, sin resultados.</small></span>
+    </label>
+    <input type="file" id="camFoto" accept="image/*" capture="environment" class="oculto" onchange="tomadas(event)">
+    <input type="file" id="galFotos" accept="image/*" multiple class="oculto" onchange="tomadas(event)">
+
+    <div class="caja">
+      <p class="ayuda"><b>Un pedido por envío:</b> la comanda y todos sus vasos de costado, en el orden que sea.</p>
+      <button class="btn primario camara" id="btnFoto" onclick="abrirCamara()">📷 Tomar fotos</button>
+      <p class="nota">Toma la comanda y cada vaso seguido, sin salir de la cámara, y toca <b>✓</b>. <b>Se envían solas.</b></p>
+      <button class="btn secundario" id="btnGaleria" onclick="abrir('galFotos')">🖼️ Elegir de la galería</button>
+      <div class="bandeja" id="bandeja"></div>
+      <div class="vacia" id="vacia">Todavía no hay fotos.</div>
+    </div>
+    <button class="btn enviar" id="btnEnviar" onclick="enviarLote()" disabled>✅ Enviar y siguiente pedido</button>
+    <div id="errorEnvio" class="error"></div>
+
+    <div id="cola"></div>
+  </div>
+</div>
+
+<div id="visor" class="oculto">
+  <video id="video" autoplay playsinline muted></video>
+  <div id="flash"></div>
+  <div class="arriba"><button onclick="cerrarCamara()" aria-label="Cerrar cámara">✕</button><span id="visorCuenta">Comanda y vasos</span><span style="width:44px"></span></div>
+  <div class="abajo">
+    <div class="tira" id="tira"></div>
+    <div class="controles">
+      <span class="lado"></span>
+      <button id="disparo" onclick="disparar()" aria-label="Tomar foto"></button>
+      <button id="listo" onclick="listoCamara()" aria-label="Enviar fotos" disabled>✓<span id="listoN">0</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Modo rush (por defecto): el equipo solo ve "Enviado"; los errores los revisa el administrador (hoja y correo diario).
+  // Modo revisión: el equipo ve el resultado de la IA y suena si falta algo. Lo cambia el interruptor de arriba.
+  var AVISAR_AL_EQUIPO = false;
+  // Dirección del Apps Script (Implementar → Administrar implementaciones → App web → URL)
+  var URL_APP = 'https://script.google.com/macros/s/AKfycbxKkqiO6GcdFcxVbIxT4dU-RE69UD9RV0L00OUov9AmSd9u_t5ycRSMg_SxXCZo7CBMTA/exec';
+  function servidor(accion, datos) {
+    datos = datos || {}; datos.accion = accion;
+    return fetch(URL_APP, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(datos) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { if (!j.ok && j.error) throw new Error(j.error); return j; });
+  }
+  function leerModo() { try { return localStorage.getItem('fotocheck_rush') !== 'no'; } catch (e) { return true; } }
+  function cambiarModo(rush) {
+    AVISAR_AL_EQUIPO = !rush;
+    try { localStorage.setItem('fotocheck_rush', rush ? 'si' : 'no'); } catch (e) {}
+    $('rush').checked = rush;
+    $('rushBox').classList.toggle('on', rush);
+    $('rushTitulo').textContent = rush ? '⚡ Modo rush' : '🔍 Modo revisión';
+    $('rushTexto').textContent = rush ? 'Envías y pasas al siguiente pedido, sin resultados.' : 'La IA te avisa si falta algo (tarda unos segundos).';
+    pintarCola();
+  }
+  var MAX_LOTE = 12, MAX_LADO = 1280;
+  var PIN = null;
+  var bandeja = [];            // { url, t } ordenadas por hora de toma
+
+  function leerPin() { try { return localStorage.getItem('fotocheck_pin'); } catch (e) { return null; } }
+  function escribirPin(v) { try { localStorage.setItem('fotocheck_pin', v); } catch (e) {} }
+  function borrarPin() { try { localStorage.removeItem('fotocheck_pin'); } catch (e) {} }
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function mostrar(id) { ['pantallaPin', 'pantallaFoto'].forEach(function (p) { $(p).classList.toggle('oculto', p !== id); }); }
+
+  function iniciar() {
+    cambiarModo(leerModo());
+    var g = leerPin();
+    if (g) { PIN = g; mostrar('pantallaFoto'); } else mostrar('pantallaPin');
+    pintarBandeja();
+  }
+  function guardarPin() {
+    var v = $('pin').value.trim(), err = $('errorPin');
+    if (!v) { err.textContent = 'Escribe el PIN.'; return; }
+    err.textContent = '';
+    servidor('verificarPin', { pin: v })
+      .then(function (j) {
+        if (j.ok) { PIN = v; escribirPin(v); mostrar('pantallaFoto'); }
+        else err.textContent = 'PIN incorrecto.';
+      })
+      .catch(function () { err.textContent = 'Sin conexión. Intenta de nuevo.'; });
+  }
+  function abrir(id) { $('errorEnvio').textContent = ''; $(id).click(); }
+
+  // ===== Fotos: se achican a 1280 px usando poca memoria =====
+  function aCanvas(fuente, w, h) {
+    var k = Math.min(1, MAX_LADO / Math.max(w, h));
+    var c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    c.getContext('2d').drawImage(fuente, 0, 0, c.width, c.height);
+    var url = c.toDataURL('image/jpeg', 0.8);
+    c.width = c.height = 0;
+    return url;
+  }
+  function achicar(archivo) {
+    if (window.createImageBitmap) {
+      return createImageBitmap(archivo).then(function (bmp) {
+        var k = Math.min(1, MAX_LADO / Math.max(bmp.width, bmp.height));
+        if (bmp.close) bmp.close();
+        return createImageBitmap(archivo, { resizeWidth: Math.round(bmp.width * k), resizeHeight: Math.round(bmp.height * k), resizeQuality: 'medium' });
+      }).then(function (chico) {
+        var url = aCanvas(chico, chico.width, chico.height);
+        if (chico.close) chico.close();
+        return url;
+      }).catch(function () { return conImagen(archivo); });
+    }
+    return conImagen(archivo);
+  }
+  function conImagen(archivo) {
+    return new Promise(function (ok, mal) {
+      var enlace = URL.createObjectURL(archivo), img = new Image();
+      img.onload = function () { var u = aCanvas(img, img.naturalWidth, img.naturalHeight); URL.revokeObjectURL(enlace); img.src = ''; ok(u); };
+      img.onerror = function () { URL.revokeObjectURL(enlace); mal(); };
+      img.src = enlace;
+    });
+  }
+
+  // Una o varias fotos: se procesan de a una (menos memoria) y se ordenan por hora de toma
+  function tomadas(ev) {
+    var archivos = Array.prototype.slice.call(ev.target.files || []);
+    var desdeGaleria = ev.target.id === 'galFotos';
+    ev.target.value = '';
+    if (!archivos.length) return;
+    var espacio = MAX_LOTE - bandeja.length;
+    if (archivos.length > espacio) {
+      $('errorEnvio').textContent = 'Máximo ' + MAX_LOTE + ' fotos por envío. Envía estas y sigue con las demás.';
+      archivos = archivos.slice(0, espacio);
+    }
+    archivos.sort(function (a, b) { return a.lastModified - b.lastModified; });
+    var cadena = Promise.resolve();
+    archivos.forEach(function (f) {
+      cadena = cadena.then(function () {
+        return achicar(f).then(function (url) {
+          bandeja.push({ url: url, t: f.lastModified || Date.now() });
+          bandeja.sort(function (a, b) { return a.t - b.t; });
+          pintarBandeja();
+        }, function () { $('errorEnvio').textContent = 'Una foto no se pudo cargar. Cierra otras apps e intenta de nuevo.'; });
+      });
+    });
+    // Eligieron el pedido completo desde la galería: se envía solo y queda listo para el siguiente
+    cadena.then(function () {
+      if (desdeGaleria && bandeja.length >= 2) enviarLote();
+      else if (desdeGaleria) $('errorEnvio').textContent = 'Elige la comanda y al menos una foto de los vasos.';
+    });
+  }
+  function quitar(i) { bandeja.splice(i, 1); pintarBandeja(); }
+
+  function pintarBandeja() {
+    $('bandeja').innerHTML = bandeja.map(function (f, i) {
+      return '<div class="mini"><img src="' + f.url + '" alt=""><span class="n">' + (i + 1) + '</span><button aria-label="Quitar foto" onclick="quitar(' + i + ')">×</button></div>';
+    }).join('');
+    $('vacia').classList.toggle('oculto', bandeja.length > 0);
+    var lleno = bandeja.length >= MAX_LOTE;
+    $('btnFoto').disabled = lleno; $('btnGaleria').disabled = lleno;
+    $('btnEnviar').disabled = bandeja.length < 2;
+    $('btnEnviar').textContent = bandeja.length ? '✅ Enviar ' + bandeja.length + ' fotos y siguiente pedido' : '✅ Enviar y siguiente pedido';
+  }
+
+  // ===== Cámara dentro de la app: varias fotos sin salir, luego ✓ =====
+  var stream = null;
+  function abrirCamara() {
+    $('errorEnvio').textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { abrir('camFoto'); return; }
+    navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } })
+      .then(function (s) {
+        stream = s;
+        $('video').srcObject = s;
+        $('visor').classList.remove('oculto');
+        pintarTira();
+      })
+      .catch(function () {
+        // Sin permiso de cámara en la app: se usa la cámara normal, una foto a la vez
+        $('errorEnvio').textContent = 'No se pudo abrir la cámara aquí. Se usará la cámara normal (una foto por vez).';
+        abrir('camFoto');
+      });
+  }
+  function disparar() {
+    var v = $('video');
+    if (!v.videoWidth || bandeja.length >= MAX_LOTE) return;
+    bandeja.push({ url: aCanvas(v, v.videoWidth, v.videoHeight), t: Date.now() });
+    var f = $('flash'); f.classList.add('on'); setTimeout(function () { f.classList.remove('on'); }, 60);
+    try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+    pintarTira(); pintarBandeja();
+  }
+  function pintarTira() {
+    $('tira').innerHTML = bandeja.map(function (f) { return '<img src="' + f.url + '" alt="">'; }).join('');
+    $('tira').scrollLeft = 99999;
+    $('listoN').textContent = bandeja.length;
+    $('listo').disabled = bandeja.length < 2;
+    $('disparo').disabled = bandeja.length >= MAX_LOTE;
+    $('visorCuenta').textContent = bandeja.length >= MAX_LOTE ? 'Máximo ' + MAX_LOTE + ' fotos' : (bandeja.length ? bandeja.length + ' foto' + (bandeja.length === 1 ? '' : 's') : 'Comanda y vasos');
+  }
+  function cerrarCamara() {
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    $('video').srcObject = null;
+    $('visor').classList.add('oculto');
+  }
+  function listoCamara() {
+    cerrarCamara();
+    if (bandeja.length >= 2) enviarLote();
+  }
+
+  // ===== Envío en segundo plano: el chico sigue trabajando =====
+  var cola = [], seq = 0;
+  function hora() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function b64(url) { return url.split(',')[1]; }
+
+  function enviarLote() {
+    if (bandeja.length < 2) { $('errorEnvio').textContent = 'Falta al menos la comanda y una foto del pedido.'; return; }
+    var job = { id: ++seq, hora: hora(), fotos: bandeja.map(function (f) { return f.url; }), r: null };
+    cola.unshift(job);
+    while (cola.length > 8) cola.pop();
+    bandeja = [];
+    pintarBandeja();
+    lanzar(job);
+    window.scrollTo(0, 0);
+  }
+  function lanzar(job) {
+    job.r = null; job.t0 = Date.now();
+    pintarCola();
+    servidor('procesarLote', { pin: PIN, fotos: job.fotos.map(b64) })
+      .then(function (j) { terminar(job, j.r || {}); })
+      .catch(function (e) {
+        var msg = String(e && e.message || e);
+        if (msg.indexOf('PIN') >= 0) { borrarPin(); mostrar('pantallaPin'); }
+        terminar(job, { error: true });
+      });
+  }
+  var PROBLEMA = ['FALTA', 'SIN_TICKET', 'FOTO_PEDIDO', 'ERROR_IA'];
+  function terminar(job, r) {
+    job.r = r;
+    if (!r.error) job.fotos = null;          // ya llegaron: libera memoria
+    var hayProblema = r.error || (AVISAR_AL_EQUIPO && (r.resultados || []).some(function (x) { return PROBLEMA.indexOf(x.resultado) >= 0; }));
+    if (hayProblema) avisar();
+    pintarCola();
+  }
+  function avisar() {
+    try {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (C) {
+        var ctx = new C();
+        [0, 0.22, 0.44].forEach(function (d) {
+          var o = ctx.createOscillator(), g = ctx.createGain();
+          o.frequency.value = 660; o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(0.0001, ctx.currentTime + d);
+          g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + d + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + d + 0.18);
+          o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.2);
+        });
+      }
+    } catch (e) {}
+    try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch (e) {}
+  }
+
+  var TEXTO = { OK: '✅ OK', REVISAR: '🟡 Revisar', REVISION_MANUAL: '🟡 Revisión manual', FALTA: '❌ Falta algo',
+    SIN_TICKET: '📋 Vasos sin comanda', FOTO_PEDIDO: '📷 Comanda sin vasos', ERROR_IA: '⚠️ IA no pudo revisar' };
+
+  function pintarCola() {
+    var pend = cola.filter(function (j) { return !j.r; }).length;
+    var html = cola.length ? '<div class="cola-titulo"><span>Últimos envíos</span><span>' + (pend ? pend + ' enviando…' : 'al día') + '</span></div>' : '';
+    cola.forEach(function (j) {
+      var titulo = j.hora + ' · ' + (j.fotos ? j.fotos.length : (j.r && j.r.fotos) || '') + ' fotos';
+      if (!j.r) {
+        html += '<div class="item" id="job' + j.id + '"><div class="fila"><span>' + titulo + '</span><span class="estado">⏫ Enviando ' + Math.round((Date.now() - j.t0) / 1000) + ' s</span></div></div>';
+        return;
+      }
+      if (j.r.error) {
+        html += '<div class="item rojo" id="job' + j.id + '"><div class="fila"><b>' + titulo + '</b><span class="estado">📶 No se envió</span></div>' +
+          '<ul><li>Revisa el internet y vuelve a intentar. Las fotos siguen aquí.</li></ul>' +
+          '<div class="acciones"><button onclick="reintentar(' + j.id + ')">🔁 Reintentar</button><button class="suave" onclick="descartar(' + j.id + ')">Descartar</button></div></div>';
+        return;
+      }
+      var n = j.r.pedidos || 0;
+      if (!AVISAR_AL_EQUIPO) {
+        html += '<div class="item verde" id="job' + j.id + '"><div class="fila"><span>' + titulo + '</span><span class="estado">✓ Enviado · ' + n + ' pedido' + (n === 1 ? '' : 's') + '</span></div></div>';
+        return;
+      }
+      var malos = (j.r.resultados || []).filter(function (x) { return x.resultado !== 'OK'; });
+      var clase = malos.some(function (x) { return PROBLEMA.indexOf(x.resultado) >= 0; }) ? 'rojo' : (malos.length ? 'ambar' : 'verde');
+      html += '<div class="item ' + clase + '" id="job' + j.id + '"><div class="fila"><b>' + titulo + '</b><span class="estado">' + n + ' pedido' + (n === 1 ? '' : 's') + '</span></div>';
+      if (j.r.resultados && j.r.resultados.length) {
+        html += '<ul>' + j.r.resultados.map(function (x) {
+          var det = (x.faltantes || []).length ? ' — falta: ' + x.faltantes.join(', ') : ((x.dudosos || []).length ? ' — revisar: ' + x.dudosos.join(', ') : '');
+          return '<li>' + esc((x.numero ? '#' + x.numero : 'Pedido') + ': ' + (TEXTO[x.resultado] || x.resultado) + det) + '</li>';
+        }).join('') + '</ul>';
+      }
+      if (clase !== 'verde') html += '<div class="acciones"><button class="suave" onclick="descartar(' + j.id + ')">Ya lo revisé</button></div>';
+      html += '</div>';
+    });
+    $('cola').innerHTML = html;
+    pintarAlerta();
+  }
+  function buscar(id) { return cola.filter(function (j) { return j.id === id; })[0]; }
+  function reintentar(id) { var j = buscar(id); if (j && j.fotos) lanzar(j); }
+  function descartar(id) { cola = cola.filter(function (j) { return j.id !== id; }); pintarCola(); }
+
+  function pintarAlerta() {
+    var malos = cola.filter(function (j) {
+      return j.r && (j.r.error || (AVISAR_AL_EQUIPO && (j.r.resultados || []).some(function (x) { return PROBLEMA.indexOf(x.resultado) >= 0; })));
+    });
+    var a = $('alerta');
+    if (!malos.length) { a.classList.add('oculto'); return; }
+    var j = malos[0];
+    a.innerHTML = (j.r.error ? '📶 Un envío no salió' : '❌ Hay un pedido con faltantes') + (malos.length > 1 ? ' (+' + (malos.length - 1) + ')' : '') +
+      '<small>' + (j.r.error ? 'Toca para reintentar' : 'Toca para ver') + '</small>';
+    a.dataset.id = j.id;
+    a.classList.remove('oculto');
+  }
+  function irAlProblema() { var el = $('job' + $('alerta').dataset.id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+
+  setInterval(function () { if (cola.some(function (j) { return !j.r; })) pintarCola(); }, 1000);
+  iniciar();
+</script>
+</body>
+</html>
